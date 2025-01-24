@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TokenService {
@@ -21,17 +23,17 @@ public class TokenService {
 
     public String generateToken(User user){
         try {
-            StringBuilder authorities = new StringBuilder();
+            String[] authorities = new String[user.getAuthorities().size()];
+            int cont = 0;
             for (GrantedAuthority authority : user.getAuthorities()) {
-                authorities.append(authority.getAuthority());
-                authorities.append(" ");
+                authorities[cont] = authority.getAuthority();
             }
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
                     .withIssuer("my-auth-service") // quem criou o token (aplicação)
                     .withSubject(user.getEmail()) // Usuário que está recebendo esse token, ou seja, quem está fazendo login
                     .withExpiresAt(generateExpirationDate()) // Tempo de experição do token
-                    .withClaim("roles", authorities.toString())
+                    .withArrayClaim("roles", authorities)
                     .sign(algorithm); // assinatura (algoritmo de criptografia)
             return token;
         }catch (JWTCreationException exception){

@@ -8,6 +8,7 @@ import com.cosmo.my_auth_service.entities.User;
 import com.cosmo.my_auth_service.infra.security.TokenService;
 import com.cosmo.my_auth_service.repositories.RoleRepository;
 import com.cosmo.my_auth_service.repositories.UserRepository;
+import com.cosmo.my_auth_service.services.exceptions.EmailExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,7 +49,7 @@ public class UserService {
     public void register(RegisterDTO dto) {
         User user = userRepository.findByEmail(dto.getEmail().toLowerCase());
         if (user != null){
-            throw new RuntimeException("erro");
+            throw new EmailExistsException("O email já existe");
         }
         String hashPassword = passwordEncoder.encode(dto.getPassword());
         User newUser = new User();
