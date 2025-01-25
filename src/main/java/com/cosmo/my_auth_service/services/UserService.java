@@ -1,15 +1,17 @@
 package com.cosmo.my_auth_service.services;
 
-import com.cosmo.my_auth_service.dto.AccessTokenDTO;
-import com.cosmo.my_auth_service.dto.AuthenticationDTO;
-import com.cosmo.my_auth_service.dto.RegisterDTO;
+import com.cosmo.my_auth_service.dto.*;
+import com.cosmo.my_auth_service.entities.PasswordRecover;
 import com.cosmo.my_auth_service.entities.Role;
 import com.cosmo.my_auth_service.entities.User;
 import com.cosmo.my_auth_service.infra.security.TokenService;
+import com.cosmo.my_auth_service.repositories.PasswordRecoverRepository;
 import com.cosmo.my_auth_service.repositories.RoleRepository;
 import com.cosmo.my_auth_service.repositories.UserRepository;
 import com.cosmo.my_auth_service.services.exceptions.EmailExistsException;
+import com.cosmo.my_auth_service.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,8 +20,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @Service
 public class UserService {
+
+    @Value("${email.password-recover.token.minutes}")
+    private Long tokenMinutes;
+
+    @Value("${email.password-recover.uri}")
+    private String recoverUri;
 
     @Autowired
     private UserRepository userRepository;
@@ -35,6 +46,12 @@ public class UserService {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private EmailServiceClient emailServiceClient;
+
+    @Autowired
+    private PasswordRecoverRepository recoverRepository;
 
     @Transactional
     public AccessTokenDTO login(AuthenticationDTO dto) {
@@ -61,5 +78,28 @@ public class UserService {
         newUser.addRole(role);
 
         userRepository.save(newUser);
+    }
+
+    @Transactional
+    public void createRecoverToken(EmailRecoveryDTO dto) {
+        User user = userRepository.findByEmail(dto.email());
+        if (user == null) {
+            throw new ResourceNotFoundException("Email Não Encontrado");
+        }
+
+        String token = UUID.randomUUID().toString();
+        PasswordRecover entity = new PasswordRecover();
+        entity.setEmail(dto.email());
+        entity.setToken(token);
+        entity.setExpiration(Instant.now().plusSeconds(tokenMinutes * 60L));
+        entity = recoverRepository.save(entity);
+
+        EmailMicroserviceRequestDTO request = new EmailMicroserviceRequestDTO();
+        String body = "Acesse o Link para definir sua nova senha\n\n" + recoverUri + token;
+        request.setBody(body);
+        request.setTo(dto.email());
+        request.setSubject("Recuperação de Senha");
+
+        emailServiceClient.sendEmail(request);
     }
 }

@@ -2,6 +2,7 @@ package com.cosmo.my_auth_service.controllers;
 
 import com.cosmo.my_auth_service.dto.AccessTokenDTO;
 import com.cosmo.my_auth_service.dto.AuthenticationDTO;
+import com.cosmo.my_auth_service.dto.EmailRecoveryDTO;
 import com.cosmo.my_auth_service.dto.RegisterDTO;
 import com.cosmo.my_auth_service.services.AuthorizationService;
 import com.cosmo.my_auth_service.services.UserService;
@@ -27,9 +28,16 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO dto){
+    public ResponseEntity<Void> register(@RequestBody @Valid RegisterDTO dto){
         userService.register(dto);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/recover-token")
+    public ResponseEntity<Void> createRecoverToken(@RequestBody @Valid EmailRecoveryDTO dto){
+        userService.createRecoverToken(dto);
+        return null;
+    }
+
 
 }
