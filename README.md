@@ -17,7 +17,7 @@ Este projeto implementa um sistema de autenticação robusto utilizando **Spring
 
 ### 1️⃣ **Clone o Repositório**
 ```bash
-git clone https://github.com/seu-usuario/nome-do-repositorio.git
+https://github.com/LucasIbiapino7/my-auth-service.git
 ```
 
 ### 3️⃣ **Execute a Aplicação na sua IDE ou com o comando abaixo**
