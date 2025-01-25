@@ -1,18 +1,12 @@
 package com.cosmo.my_auth_service.controllers;
 
-import com.cosmo.my_auth_service.dto.AccessTokenDTO;
-import com.cosmo.my_auth_service.dto.AuthenticationDTO;
-import com.cosmo.my_auth_service.dto.EmailRecoveryDTO;
-import com.cosmo.my_auth_service.dto.RegisterDTO;
+import com.cosmo.my_auth_service.dto.*;
 import com.cosmo.my_auth_service.services.AuthorizationService;
 import com.cosmo.my_auth_service.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/auth")
@@ -38,6 +32,13 @@ public class AuthenticationController {
         userService.createRecoverToken(dto);
         return null;
     }
+
+    @PutMapping(value = "/new-password")
+    public ResponseEntity<Void> saveNewPassword(@RequestBody @Valid NewPasswordDto dto){
+        userService.saveNewPassword(dto);
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 }

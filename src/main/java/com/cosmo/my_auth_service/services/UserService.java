@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -101,5 +102,17 @@ public class UserService {
         request.setSubject("Recuperação de Senha");
 
         emailServiceClient.sendEmail(request);
+    }
+
+
+    @Transactional
+    public void saveNewPassword(NewPasswordDto dto) {
+        List<PasswordRecover> result = recoverRepository.searchValidTokens(dto.getToken(), Instant.now());
+        if (result.isEmpty()){
+            throw new ResourceNotFoundException("Token Inválido");
+        }
+        User user = userRepository.findByEmail(result.get(0).getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user = userRepository.save(user);
     }
 }
